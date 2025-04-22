@@ -55,7 +55,7 @@
                             <div class="btn-group">
 
                                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#kategoriModalCreate">
-                                    Tambah Kategori (Modal)
+                                    Tambah Kategori 
                                 </button>
                             </div>
                         </div>

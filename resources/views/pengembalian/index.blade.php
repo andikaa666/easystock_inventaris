@@ -67,40 +67,32 @@
                                         <th>Tanggal Pengembalian</th>
                                         <th>Jumlah Barang</th>
                                         <th>Status Barang</th>
+                                        <th>Total Denda</th>
                                         <th>Nama Barang</th>
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
 
                                 <tbody class="table-border-bottom-0">
-                                    {{-- @forelse ($kategori_barang as $data) --}}
-                                    <tr>
-                                        {{-- <td>{{ $data->nama_kategori }}</td>
-                                        <td>{{ optional($data->barang)->nama_barang }}</td> <!-- Cegah error --> --}}
-                                        {{-- <td>
-                                            <div class="btn-group dropend">
-                                                <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                                                    &#x22EE;
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li>
-                                                        <a href="{{ route('#', $data->id) }}" class="dropdown-item text-warning">Edit</a>
-                                                    </li>
-                                                    <li>
-                                                        <button type="button" class="dropdown-item text-warning edit-btn" data-id="{{ $data->id }}" data-bs-toggle="modal" data-bs-target="#kategoriModalEdit">Edit</button>
-                                                    </li>
-                                                    <li>
-                                                        <button type="button" class="dropdown-item text-danger delete-btn" data-id="{{ $data->id }}">Delete</button>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td> --}}
-                                    </tr>
-                                    {{-- @empty --}}
-                                    <tr>
-                                        <td colspan="3" class="text-center">Data belum tersedia.</td>
-                                    </tr>
-                                    {{-- @endforelse --}}
+                                    @forelse ($pengembalian as $data)
+<tr>
+    <td>{{ $data->peminjaman->nama_peminjam }}</td>
+    <td>{{ $data->tanggal_pengembalian }}</td>
+    <td>{{ $data->jumlah }}</td>
+    <td>{{ $data->status_barang }}</td>
+    <td>{{ $data->total_denda }}</td>
+    <td>{{ $data->barang->nama_barang }}</td>
+    <td>
+        {{-- Tambahkan aksi seperti edit atau delete jika perlu --}}
+        <button class="btn btn-sm btn-danger delete-btn" data-id="{{ $data->id }}">Hapus</button>
+    </td>
+</tr>
+@empty
+<tr>
+    <td colspan="6" class="text-center">Data belum tersedia.</td>
+</tr>
+@endforelse
+
                                 </tbody>
 
                             </table>
@@ -112,29 +104,72 @@
 
         <div class="layout-overlay layout-menu-toggle"></div>
         <!-- add-->
-        {{-- <div class="modal fade" id="kategoriModalCreate" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Tambah Kategori</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="formCreate">
-                            @csrf
-                            <div class="mb-3">
-                                <label class="form-label">Nama Kategori</label>
-                                <input type="text" class="form-control" name="nama_kategori" required>
-                            </div>
-                            <select name="id_barang" id="barang_id" class="form-control">
-                                <option value="">-- Pilih Barang --</option>
-                            </select>
-                            <button type="submit" class="btn btn-primary mt-2">Simpan</button>
-                        </form>
-                    </div>
-                </div>
+        <!-- Modal Tambah Pengembalian -->
+<!-- Modal Tambah Pengembalian -->
+<div class="modal fade" id="modalPengembalian" tabindex="-1" aria-labelledby="modalPengembalianLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="formPengembalian">
+        @csrf
+        <input type="hidden" name="peminjaman_id" id="peminjaman_id">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Tambah Pengembalian</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+                <label for="nama_peminjam" class="form-label">Nama Peminjam</label>
+                <select class="form-select" id="nama_peminjam" name="peminjaman_id" required>
+                    <option value="">-- Pilih Peminjam --</option>
+                    @foreach ($peminjaman as $p)
+                      <option value="{{ $p->id }}">{{ $p->nama_peminjam }}</option>
+                    @endforeach
+                  </select>
+
+              </div>
+
+              <div class="mb-3">
+                <label for="nama_barang" class="form-label">Nama Barang</label>
+                <select class="form-select" id="nama_barang" name="barang_id" required>
+                  <option value="">-- Pilih Barang --</option>
+                  @foreach ($barang as $b)
+                    <option value="{{ $b->id }}" data-jumlah="{{ $b->stok }}">{{ $b->nama_barang }}</option>
+                  @endforeach
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Jumlah Barang</label>
+                <input type="number" class="form-control" id="jumlah" name="jumlah" readonly>
+              </div>
+
+
+            <div class="mb-3">
+              <label class="form-label">Tanggal Pengembalian</label>
+              <input type="date" class="form-control" name="tanggal_pengembalian" required>
             </div>
-        </div> --}}
+
+            <div class="mb-3">
+              <label class="form-label">Status Barang</label>
+              <input type="text" class="form-control" name="status_barang" required placeholder="Contoh: Baik / Rusak / Hilang">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Total Denda</label>
+                <input type="text" class="form-control" name="total_denda" id="total_denda" placeholder="Masukkan total denda (jika ada)" required>
+              </div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Simpan</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
 
 
     </div>
@@ -183,116 +218,38 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-   {{-- <script>
-    $(document).ready(function () {
-        function loadBarangOptions(selectedId = null, edit = false) {
-            $.ajax({
-                url: "/barang-list",
-                type: "GET",
-                success: function (data) {
-                    let selectOptions = '<option value="">-- Pilih Barang --</option>';
-                    $.each(data, function (key, barang) {
-                        let selected = (selectedId == barang.id) ? 'selected' : '';
-                        selectOptions += `<option value="${barang.id}" ${selected}>${barang.nama_barang}</option>`;
-                    });
-                    if (edit) {
-                        $("#edit_barang_id").html(selectOptions);
-                    } else {
-                        $("#barang_id").html(selectOptions);
-                    }
-                },
-                error: function () {
-                    Swal.fire("Gagal", "Gagal mengambil data barang.", "error");
-                }
-            });
-        }
+    <script>
+        $(document).ready(function () {
 
-        $("#kategoriModalCreate").on("shown.bs.modal", function () {
-            loadBarangOptions();
-        });
+          // Saat user memilih nama barang, isi otomatis jumlahnya
+          $('#nama_barang').on('change', function () {
+            let selectedOption = $(this).find(':selected');
+            let jumlah = selectedOption.data('jumlah') || '';
+            $('#jumlah').val(jumlah);
+          });
 
-        $("#formCreate").submit(function (e) {
+          // Saat form disubmit
+          $('#formPengembalian').submit(function (e) {
             e.preventDefault();
-            $.ajax({
-                url: "/kategori_barang",
-                type: "POST",
-                data: $(this).serialize(),
-                success: function (response) {
-                    Swal.fire("Sukses!", response.success, "success").then(() => {
-                        location.reload();
-                    });
-                },
-                error: function (xhr) {
-                    Swal.fire("Gagal!", "Gagal menambahkan data.", "error");
-                }
-            });
-        });
 
-        $(".edit-btn").click(function () {
-            let id = $(this).data("id");
             $.ajax({
-                url: "/kategori_barang/" + id + "/edit",
-                type: "GET",
-                success: function (response) {
-                    $("#edit_id").val(response.kategori.id);
-                    $("#edit_nama_kategori").val(response.kategori.nama_kategori);
-                    loadBarangOptions(response.kategori.id_barang, true);
-                    $("#kategoriModalEdit").modal("show");
-                },
-                error: function () {
-                    Swal.fire("Gagal", "Gagal mengambil data kategori.", "error");
-                }
+              url: "{{ route('pengembalian.store') }}",
+              type: "POST",
+              data: $(this).serialize(),
+              success: function (res) {
+                Swal.fire("Berhasil", res.message, "success").then(() => location.reload());
+              },
+              error: function (err) {
+                console.error(err);
+                Swal.fire("Gagal", "Terjadi kesalahan saat menyimpan data.", "error");
+              }
             });
-        });
+          });
 
-        $("#formEdit").submit(function (e) {
-            e.preventDefault();
-            let id = $("#edit_id").val();
-            $.ajax({
-                url: "/kategori_barang/" + id,
-                type: "PUT",
-                data: $(this).serialize(),
-                success: function (response) {
-                    Swal.fire("Sukses!", response.success, "success").then(() => {
-                        location.reload();
-                    });
-                },
-                error: function (xhr) {
-                    Swal.fire("Gagal!", "Gagal memperbarui data.", "error");
-                }
-            });
         });
+      </script>
 
-        $(document).on('click', '.delete-btn', function () {
-            let id = $(this).data('id');
-            Swal.fire({
-                title: "Apakah Anda yakin?",
-                text: "Data akan dihapus secara permanen!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#d33",
-                cancelButtonColor: "#3085d6",
-                confirmButtonText: "Ya, Hapus!",
-                cancelButtonText: "Batal"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: "/kategori_barang/" + id,
-                        type: "DELETE",
-                        success: function (response) {
-                            Swal.fire("Sukses!", response.success, "success").then(() => {
-                                location.reload();
-                            });
-                        },
-                        error: function () {
-                            Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus data.", "error");
-                        }
-                    });
-                }
-            });
-        });
-    });
-</script> --}}
+
 
 </body>
 </html>

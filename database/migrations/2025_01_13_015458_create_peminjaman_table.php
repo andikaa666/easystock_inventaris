@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('status_barang');
             $table->bigInteger('id_barang')->unsigned();
             $table->foreign('id_barang')->references('id')->on('barangs')->ondelete('cascade');
+            
             $table->timestamps();
         });
     }

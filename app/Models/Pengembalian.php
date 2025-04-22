@@ -9,10 +9,14 @@ class Pengembalian extends Model
 {
     use HasFactory;
     use HasFactory;
-    protected $fillable = ['nama_peminjam','tanggal_pengembalian','jumlah_barang','status_barang', 'id_barang'];
-    protected $visible = ['nama_peminjam','tanggal_pengembalian','jumlah_barang','status_barang', 'id_barang'];
+    protected $fillable = ['tanggal_pengembalian','jumlah_barang','status_barang','total_denda', 'id_barang','id_peminjaman'];
+    protected $visible = ['tanggal_pengembalian','jumlah_barang','status_barang','total_denda', 'id_barang','id_peminjaman'];
     public function barang()
     {
         return $this->belongsTo(Barang::class, 'id_barang');
+    }
+    public function peminjamanB()
+    {
+        return $this->belongsTo(PeminjamanB::class, 'id_peminjam');
     }
 }

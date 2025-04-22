@@ -20,6 +20,23 @@ class BarangController extends Controller
     ]);
     }
 
+    public function getLowStockItems()
+{
+    $barang = Barang::all()->filter(function ($item) {
+        $sisa = $item->stok - $item->dipinjam;
+        return $sisa < 5;
+    })->values();
+
+    // Optional: Tambahkan sisa stok ke response
+    $barang = $barang->map(function ($item) {
+        $item->sisa_stok = $item->stok - $item->dipinjam;
+        return $item;
+    });
+
+    return response()->json($barang);
+}
+
+
 
     public function index()
     {

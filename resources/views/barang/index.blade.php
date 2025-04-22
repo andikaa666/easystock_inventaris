@@ -200,15 +200,20 @@
                     type: 'POST',
                     data: formData,
                     success: function(response) {
-                        Swal.fire({
-                            title: "Berhasil!",
-                            text: "Data berhasil ditambahkan!",
-                            icon: "success",
-                            confirmButtonText: "OK"
-                        }).then(() => {
-                            location.reload();
-                        });
-                    },
+    $('#modalCreateBarang').modal('hide'); // Tutup modal dulu
+
+    setTimeout(() => {
+        Swal.fire({
+            title: "Berhasil!",
+            text: "Data berhasil ditambahkan!",
+            icon: "success",
+            confirmButtonText: "OK"
+        }).then(() => {
+            location.reload();
+        });
+    }, 300); // Delay kecil biar animasi modal close selesai
+},
+
                     error: function() {
                         Swal.fire({
                             title: "Gagal!",

@@ -53,7 +53,7 @@
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">List Peminjaman</h5>
                             {{-- <a href="{{ route('peminjamanB.create') }}" class="btn btn-primary btn-sm">Pinjam?</a> --}}
-                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalPinjam">Pinjam?</button>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalPinjam">Pinjam</button>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-dark table-hover mb-0">
@@ -181,16 +181,21 @@
               url: "{{ route('peminjamanB.store') }}",
               type: 'POST',
               data: formData,
-              success: function (response) {
-                Swal.fire({
-                  title: "Berhasil!",
-                  text: "Peminjaman berhasil disimpan!",
-                  icon: "success",
-                  confirmButtonText: "OK"
-                }).then(() => {
-                  location.reload();
-                });
-              },
+              success: function(response) {
+    $('#modalPinjam').modal('hide'); // Tutup modal dulu
+
+    setTimeout(() => {
+        Swal.fire({
+            title: "Berhasil!",
+            text: "Data berhasil ditambahkan!",
+            icon: "success",
+            confirmButtonText: "OK"
+        }).then(() => {
+            location.reload();
+        });
+    }, 300); // Delay kecil biar animasi modal close selesai
+},
+
               error: function (xhr) {
                 let errorMessage = "Terjadi kesalahan saat menyimpan data.";
                 if (xhr.responseJSON && xhr.responseJSON.message) {

@@ -79,6 +79,7 @@
       .form-label {
         position: absolute;
         top: 50%;
+        
         left: 15px;
         color: #aaa;
         font-size: 1rem;

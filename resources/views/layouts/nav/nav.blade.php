@@ -18,26 +18,15 @@
       <!-- Right side -->
       <ul class="navbar-nav flex-row align-items-center ms-auto">
 
-        <!-- Dark mode toggle -->
-        {{-- <li class="nav-item me-3">
-          <a href="javascript:void(0);" class="nav-link" onclick="toggleDarkMode()" title="Dark Mode">
-            <i id="darkModeIcon" class="bx bx-moon fs-4"></i>
-          </a>
-        </li> --}}
-
         <!-- Notification bell -->
         <li class="nav-item me-3 dropdown">
           <a class="nav-link position-relative" href="javascript:void(0);" data-bs-toggle="dropdown">
             <i class="bx bx-bell fs-4"></i>
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-              3
-            </span>
+            <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">0</span>
           </a>
-          <ul class="dropdown-menu dropdown-menu-end shadow-sm p-2 rounded-3">
+          <ul id="notifList" class="dropdown-menu dropdown-menu-end shadow-sm p-2 rounded-3">
             <li class="dropdown-header">Notifikasi</li>
-            <li><a class="dropdown-item" href="#">✔ Barang baru ditambahkan</a></li>
-            <li><a class="dropdown-item" href="#">⚠️ Stok hampir habis</a></li>
-            <li><a class="dropdown-item" href="#">🔄 Data berhasil di-update</a></li>
+            <!-- Notifikasi stok menipis akan ditambahkan secara dinamis -->
           </ul>
         </li>
 
@@ -63,7 +52,7 @@
                     <img src="../assets/img/avatars/6.png" alt class="w-px-40 h-auto rounded-circle" />
                   </div>
                   <div>
-                    <span class="fw-semibold d-block">Andika</span>
+                    Hello {{ Auth::user()->username }}
                     <small class="text-muted">Admin</small>
                   </div>
                 </div>
@@ -71,8 +60,8 @@
             </li>
             <li><div class="dropdown-divider"></div></li>
             <li><a class="dropdown-item" href="#"><i class="bx bx-user me-2"></i>My Profile</a></li>
-            <li><a class="dropdown-item" href="#"><i class="bx bx-cog me-2"></i>Settings</a></li>
-            <li><a class="dropdown-item" href="#"><i class="bx bx-credit-card me-2"></i>Billing <span class="badge bg-danger ms-1">4</span></a></li>
+            {{-- <li><a class="dropdown-item" href="#"><i class="bx bx-cog me-2"></i>Settings</a></li>
+            <li><a class="dropdown-item" href="#"><i class="bx bx-credit-card me-2"></i>Billing <span class="badge bg-danger ms-1">4</span></a></li> --}}
             <li><div class="dropdown-divider"></div></li>
             <li>
               <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
@@ -87,6 +76,7 @@
       </ul>
     </div>
   </nav>
+
   <script>
     // Fullscreen toggle
     function toggleFullScreen() {
@@ -97,7 +87,7 @@
       }
     }
 
-    // Dark mode toggle
+    // Dark mode toggle (jika aktifkan kembali)
     function toggleDarkMode() {
       const html = document.documentElement;
       html.classList.toggle("dark-mode");
@@ -105,4 +95,33 @@
       icon.classList.toggle("bx-sun");
       icon.classList.toggle("bx-moon");
     }
+
+    // Fetch notifikasi stok menipis
+    document.addEventListener("DOMContentLoaded", function () {
+      fetch("/api/barang/stok-menipis")
+        .then((res) => res.json())
+        .then((data) => {
+          const notifBadge = document.getElementById("notifBadge");
+          const notifList = document.getElementById("notifList");
+
+          if (data.length > 0) {
+            notifBadge.textContent = data.length;
+            notifBadge.style.display = "inline-block";
+
+            // Hapus notifikasi lama kecuali header
+            const oldItems = notifList.querySelectorAll("li:not(.dropdown-header)");
+            oldItems.forEach(item => item.remove());
+
+            // Tambahkan notifikasi baru
+            data.forEach(item => {
+              const li = document.createElement("li");
+              li.innerHTML = `<a class="dropdown-item text-warning" href="#">⚠️ Stok '${item.nama_barang}' tinggal ${item.stok}</a>`;
+              notifList.appendChild(li);
+            });
+          } else {
+            notifBadge.style.display = "none";
+          }
+        })
+        .catch((err) => console.error("Gagal mengambil notifikasi stok:", err));
+    });
   </script>

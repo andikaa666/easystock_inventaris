@@ -86,7 +86,8 @@ class PeminjamanBController extends Controller
                 'id_barang' => 'required|exists:barangs,id',
             ]);
 
-            $peminjamanB = Barang::findOrFail($id);
+            $peminjamanB = PeminjamanB::findOrFail($id);
+
             $barang = $peminjamanB->barang;
             $barang->stok = $barang->stok - $peminjamanB->jumlah_barang + $request->jumlah_barang;
             $barang->save();
@@ -105,7 +106,7 @@ class PeminjamanBController extends Controller
         return redirect()->route('peminjamanB.index')->with('error', 'Data tidak ditemukan!');
     }
 
-    // Tambahkan kembali jumlah barang yang dipinjam ke stok
+    
     $barang = Barang::find($peminjamanB->id_barang);
     if ($barang) {
         $barang->stok += $peminjamanB->jumlah_barang;

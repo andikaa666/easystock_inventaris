@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 use App\Models\Pengembalian;
-// use App\Models\Barang;
+use App\Models\Peminjaman;
+use App\Models\Barang;
 
 use Illuminate\Http\Request;
 
@@ -16,7 +17,9 @@ class PengembalianController extends Controller
     public function index()
     {
         $pengembalian = Pengembalian::all();
-        return view('pengembalian.index', compact('pengembalian'));
+        $barang = Barang::all();
+        $peminjaman = Peminjaman::all();
+        return view('pengembalian.index', compact('pengembalian','peminjaman','barang'));
     }
 
     /**
@@ -36,9 +39,30 @@ class PengembalianController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
-        //
-    }
+{
+    $request->validate([
+        'peminjaman_id' => 'required|exists:peminjaman,id',
+        'barang_id' => 'required|exists:barang,id',
+        'tanggal_pengembalian' => 'required|date',
+        'jumlah' => 'required|numeric|min:1',
+        'status_barang' => 'required|string',
+        'total_denda' => 'nullable|numeric',
+    ]);
+
+    $pengembalian = Pengembalian::create([
+        'peminjaman_id' => $request->peminjaman_id,
+        'barang_id' => $request->barang_id,
+        'tanggal_pengembalian' => $request->tanggal_pengembalian,
+        'jumlah' => $request->jumlah,
+        'status_barang' => $request->status_barang,
+        'total_denda' => $request->total_denda ?? 0,
+    ]);
+
+    return response()->json([
+        'message' => 'Data pengembalian berhasil disimpan.',
+        'data' => $pengembalian
+    ]);
+}
 
     /**
      * Display the specified resource.

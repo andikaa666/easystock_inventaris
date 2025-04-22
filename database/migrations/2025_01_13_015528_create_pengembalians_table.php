@@ -19,8 +19,11 @@ return new class extends Migration
             $table->date('tanggal_pengembalian');
             $table->bigInteger('jumlah_barang');
             $table->string('status_barang');
+            $table->string('total_denda');
             $table->bigInteger('id_barang')->unsigned();
             $table->foreign('id_barang')->references('id')->on('barangs')->ondelete('cascade');
+            $table->bigInteger('id_peminjam')->unsigned();
+            $table->foreign('id_peminjam')->references('id')->on('peminjaman')->ondelete('cascade');
             $table->timestamps();
         });
     }
