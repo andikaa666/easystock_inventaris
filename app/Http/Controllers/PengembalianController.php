@@ -46,7 +46,7 @@ class PengembalianController extends Controller
         'tanggal_pengembalian' => 'required|date',
         'jumlah' => 'required|numeric|min:1',
         'status_barang' => 'required|string',
-        'total_denda' => 'nullable|numeric',
+
     ]);
 
     $pengembalian = Pengembalian::create([
@@ -55,7 +55,6 @@ class PengembalianController extends Controller
         'tanggal_pengembalian' => $request->tanggal_pengembalian,
         'jumlah' => $request->jumlah,
         'status_barang' => $request->status_barang,
-        'total_denda' => $request->total_denda ?? 0,
     ]);
 
     return response()->json([

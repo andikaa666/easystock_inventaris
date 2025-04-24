@@ -67,7 +67,7 @@
                                         <th>Tanggal Pengembalian</th>
                                         <th>Jumlah Barang</th>
                                         <th>Status Barang</th>
-                                        <th>Total Denda</th>
+
                                         <th>Nama Barang</th>
                                         <th>Aksi</th>
                                     </tr>
@@ -76,11 +76,10 @@
                                 <tbody class="table-border-bottom-0">
                                     @forelse ($pengembalian as $data)
 <tr>
-    <td>{{ $data->peminjaman->nama_peminjam }}</td>
+    <td>{{ $data->nama_peminjam }}</td>
     <td>{{ $data->tanggal_pengembalian }}</td>
-    <td>{{ $data->jumlah }}</td>
+    <td>{{ $data->jumlah_barang }}</td>
     <td>{{ $data->status_barang }}</td>
-    <td>{{ $data->total_denda }}</td>
     <td>{{ $data->barang->nama_barang }}</td>
     <td>
         {{-- Tambahkan aksi seperti edit atau delete jika perlu --}}
@@ -110,7 +109,6 @@
     <div class="modal-dialog">
       <form id="formPengembalian">
         @csrf
-        <input type="hidden" name="peminjaman_id" id="peminjaman_id">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Tambah Pengembalian</h5>
@@ -140,9 +138,8 @@
 
               <div class="mb-3">
                 <label class="form-label">Jumlah Barang</label>
-                <input type="number" class="form-control" id="jumlah" name="jumlah" readonly>
+                <input type="number" class="form-control" id="jumlah" name="jumlah_barang" readonly>
               </div>
-
 
             <div class="mb-3">
               <label class="form-label">Tanggal Pengembalian</label>
@@ -154,12 +151,7 @@
               <input type="text" class="form-control" name="status_barang" required placeholder="Contoh: Baik / Rusak / Hilang">
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Total Denda</label>
-                <input type="text" class="form-control" name="total_denda" id="total_denda" placeholder="Masukkan total denda (jika ada)" required>
-              </div>
-
-          </div>
+            
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Simpan</button>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -220,32 +212,165 @@
 
     <script>
         $(document).ready(function () {
+            // Store peminjaman data globally
+            let peminjamanData = {};
 
-          // Saat user memilih nama barang, isi otomatis jumlahnya
-          $('#nama_barang').on('change', function () {
-            let selectedOption = $(this).find(':selected');
-            let jumlah = selectedOption.data('jumlah') || '';
-            $('#jumlah').val(jumlah);
-          });
-
-          // Saat form disubmit
-          $('#formPengembalian').submit(function (e) {
-            e.preventDefault();
-
-            $.ajax({
-              url: "{{ route('pengembalian.store') }}",
-              type: "POST",
-              data: $(this).serialize(),
-              success: function (res) {
-                Swal.fire("Berhasil", res.message, "success").then(() => location.reload());
-              },
-              error: function (err) {
-                console.error(err);
-                Swal.fire("Gagal", "Terjadi kesalahan saat menyimpan data.", "error");
-              }
+            // When peminjaman is selected, store its data
+            $('#nama_peminjam').on('change', function() {
+                let peminjamId = $(this).val();
+                if (peminjamId) {
+                    // Find the selected peminjaman data
+                    @foreach($peminjaman as $p)
+                        if ('{{ $p->id }}' === peminjamId) {
+                            peminjamanData = {
+                                id: '{{ $p->id }}',
+                                tanggal_peminjaman: '{{ $p->tanggal_peminjaman }}'
+                            };
+                        }
+                    @endforeach
+                }
             });
-          });
 
+            // When barang is selected, update jumlah
+            $('#nama_barang').on('change', function () {
+                let selectedOption = $(this).find(':selected');
+                let jumlah = selectedOption.data('jumlah') || '';
+                $('#jumlah').val(jumlah);
+            });
+
+            // Calculate denda when return date is selected
+            $('input[name="tanggal_pengembalian"]').on('change', function() {
+                let tanggalPengembalian = $(this).val();
+                if (tanggalPengembalian && peminjamanData.tanggal_peminjaman) {
+                    // Calculate days difference
+                    let start = new Date(peminjamanData.tanggal_peminjaman);
+                    let end = new Date(tanggalPengembalian);
+                    let diffTime = Math.abs(end - start);
+                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    // Calculate denda (Rp 5.000 per day)
+                    let denda = diffDays * 5000;
+
+                    // Update total_denda field with formatting
+                    $('#total_denda').val(denda.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }));
+                }
+            });
+
+            // Form submission
+            $('#formPengembalian').submit(function (e) {
+                e.preventDefault();
+
+                // Validate required fields
+                let peminjamId = $('#nama_peminjam').val();
+                let barangId = $('#nama_barang').val();
+                let tanggalPengembalian = $('input[name="tanggal_pengembalian"]').val();
+                let jumlahBarang = $('#jumlah').val();
+                let statusBarang = $('input[name="status_barang"]').val();
+
+                if (!peminjamId || !barangId || !tanggalPengembalian || !jumlahBarang || !statusBarang) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validasi Error',
+                        text: 'Semua field harus diisi!'
+                    });
+                }
+
+                // Convert formatted denda back to number before submitting
+                let totalDenda = $('#total_denda').val().replace(/[^0-9]/g, '');
+
+                // Create FormData and ensure field mappings are correct
+                let formData = $(this).serialize();
+                formData = formData.replace('peminjaman_id', 'id_peminjam');
+                formData = formData.replace('barang_id', 'id_barang');
+                formData += '&total_denda=' + totalDenda;
+
+                $.ajax({
+                    url: "{{ route('pengembalian.store') }}",
+                    type: "POST",
+                    data: formData,
+                    data: formData,
+                    success: function (res) {
+                        if (res.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: res.message,
+                                showConfirmButton: false,
+                                timer: 1500
+                            }).then(() => {
+                                // Reset form and reload page
+                                $('#formPengembalian')[0].reset();
+                                $('#modalPengembalian').modal('hide');
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: res.message
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        let errors = xhr.responseJSON?.errors;
+                        let errorMessage = 'Terjadi kesalahan saat menyimpan data.';
+
+                        if (errors) {
+                            errorMessage = Object.values(errors).flat().join('\n');
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            text: errorMessage
+                        });
+                    }
+                });
+            });
+
+            // Delete functionality
+            $('.delete-btn').on('click', function() {
+                let id = $(this).data('id');
+
+                Swal.fire({
+                    title: 'Apakah anda yakin?',
+                    text: "Data pengembalian akan dihapus permanen!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/pengembalian/${id}`,
+                            type: 'DELETE',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(res) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: 'Data pengembalian berhasil dihapus.',
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            },
+                            error: function() {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: 'Terjadi kesalahan saat menghapus data.'
+                                });
+                            }
+                        });
+                    }
+                });
+            });
         });
       </script>
 
